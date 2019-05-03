@@ -13,7 +13,7 @@ public class TaskExecutorFactory {
         return new PgTaskExecutor(vertx, config);
     }
 
-    public MySqlTaskExecutor newMySqlTaskExecutor() {
-        return new MySqlTaskExecutor();
+    public static  MySqlTaskExecutor newMySqlTaskExecutor(final Vertx vertx, final Config config) {
+        return new MySqlTaskExecutor(vertx, config);
     }
 }

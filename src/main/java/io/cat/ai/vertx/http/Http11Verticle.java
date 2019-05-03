@@ -47,7 +47,7 @@ public class Http11Verticle extends AbstractVerticle {
                 .setTcpQuickAck(config.getBoolean("vertx.http.tcpQuickAck"))
                 .setReusePort(config.getBoolean("vertx.http.reusePort"))
                 .setTcpFastOpen(config.getBoolean("vertx.http.tcpFastOpen")))
-                .requestHandler(router::accept)
+                .requestHandler(router)
                 .listen(httpPort);
 
         logger.info(this.getClass().getSimpleName() + " instance started at port: " + httpPort);

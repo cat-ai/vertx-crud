@@ -2,7 +2,11 @@ package io.cat.ai.app.crud;
 
 import io.reactiverse.pgclient.Tuple;
 
+import io.vertx.core.json.JsonArray;
+
 import lombok.*;
+
+import java.util.Arrays;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CrudUtils {
@@ -48,5 +52,10 @@ public class CrudUtils {
             default:
                 return Tuple.of(args); // fix
         }
+    }
+
+    public static JsonArray mySqlQueryArg(String... args) {
+        // TODO refactor too!
+        return new JsonArray(Arrays.asList(args));
     }
 }

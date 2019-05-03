@@ -47,10 +47,11 @@ public class VertxPgHttpCrud implements VertxHttpCrud {
                     }
                     else {
                         logger.error(asyncResult.cause());
-                        badRequestJson(ctx, asyncResult.cause());
+                        internalServerError(ctx, asyncResult.cause());
                     }
                 },
-                params);
+                params
+        );
     }
 
     @Override
@@ -64,7 +65,7 @@ public class VertxPgHttpCrud implements VertxHttpCrud {
 
                     else {
                         logger.error(asyncResult.cause());
-                        internalServerError(ctx);
+                        internalServerError(ctx, asyncResult.cause());
                     }
                 },
                 params
@@ -82,10 +83,11 @@ public class VertxPgHttpCrud implements VertxHttpCrud {
 
                     else {
                         logger.error(asyncResult.cause());
-                        internalServerError(ctx);
+                        internalServerError(ctx, asyncResult.cause());
                     }
                 },
-                params);
+                params
+        );
     }
 
     @Override
@@ -99,12 +101,12 @@ public class VertxPgHttpCrud implements VertxHttpCrud {
 
                         if (it.hasNext()) {
                             val row = it.next();
-                            jsonOk(ctx, new ResponseMessage("Created new client: " + row.getString(1)));
+                            jsonOk(ctx, new ResponseMessage("Created new client: " + row.getValue("nickname")));
                         }
                     }
                     else {
                         logger.error(asyncResult.result());
-                        internalServerError(ctx);
+                        internalServerError(ctx, asyncResult.cause());
                     }
                 },
                 params

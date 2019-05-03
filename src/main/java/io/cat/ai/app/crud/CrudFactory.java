@@ -16,7 +16,7 @@ public class CrudFactory {
     }
 
     public static  VertxHttpCrud newVertxMySqlHttpCrud(final Vertx vertx, final Config conf) {
-        return new VertxMySqlHttpCrud();
+        return new VertxMySqlHttpCrud(vertx, conf);
     }
 
     public static VertxHttpCrud newVertxHttpCrud(final String crud,
@@ -41,7 +41,7 @@ public class CrudFactory {
             case "Mysql":
             case "MySql":
             case "MYSQL":
-                return new VertxMySqlHttpCrud();
+                return new VertxMySqlHttpCrud(vertx, conf);
 
              default:
                 throw new RuntimeException(crud + " not found");
