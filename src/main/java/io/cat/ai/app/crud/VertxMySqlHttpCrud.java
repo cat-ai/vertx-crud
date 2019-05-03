@@ -18,6 +18,7 @@ import lombok.val;
 import static io.cat.ai.vertx.http.Http11Channel.*;
 
 // not tested!
+// Native transport (KQueue x86-64) not supported for MySQL client
 public class VertxMySqlHttpCrud implements VertxHttpCrud {
 
     private static final Logger logger = LoggerFactory.getLogger(VertxMySqlHttpCrud.class);
