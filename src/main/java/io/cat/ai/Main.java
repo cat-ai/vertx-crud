@@ -18,7 +18,7 @@ class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-    private static volatile boolean isStarted = true;
+    private static volatile boolean isStarted = false;
 
     public static void main(String[] args) throws InterruptedException {
         val injector = Guice.createInjector(new AppModule());
