@@ -11,5 +11,4 @@ public interface VertxHttpCrud extends AsyncCrud<RoutingContext, String> {
     void delete(RoutingContext ctx, String... params);
 
     void insert(RoutingContext ctx, String... params);
-
 }

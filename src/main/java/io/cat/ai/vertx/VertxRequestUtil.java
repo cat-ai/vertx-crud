@@ -50,7 +50,7 @@ public class VertxRequestUtil {
     private static <T> T parse(DecodeType type, Object obj, Class<? extends T> clz) throws DecodeException {
         T body = null;
 
-        if (nonNull(obj))
+        if (nonNull(obj)) {
             try {
                 switch (type) {
                     case BUFFER:
@@ -63,7 +63,7 @@ public class VertxRequestUtil {
             } catch (DecodeException e) {
                 logger.error("Error at decoding: " + e.getMessage());
             }
-
+        }
         return body;
     }
 
@@ -106,5 +106,4 @@ public class VertxRequestUtil {
     public static String path(RoutingContext ctx) {
         return ctx.request().path();
     }
-
 }

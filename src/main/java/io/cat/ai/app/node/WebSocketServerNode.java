@@ -38,20 +38,22 @@ public class WebSocketServerNode implements Node {
 
         val vertx = Vertx.vertx(new VertxOptions().setPreferNativeTransport(config.getBoolean("vertx.ws.preferNativeTransport")));
 
-        if (vertx.isNativeTransportEnabled())
+        if (vertx.isNativeTransportEnabled()) {
             logger.info("WebSocketServerNode native transport enabled: using " + Transport.nativeTransport().getClass().getSimpleName());
-        else
+        } else {
             logger.debug("WebSocketServerNode native transport is not enabled");
+        }
 
         vertx.deployVerticle(
                 () -> VerticleFactory.newWebsocketVerticle(config),
 
                 new DeploymentOptions().setInstances(CpuCoreSensor.availableProcessors()), asyncRes -> {
 
-                    if (asyncRes.succeeded())
+                    if (asyncRes.succeeded()) {
                         logger.debug("WebSocketServerNode started!");
-                    else
+                    } else {
                         logger.error("Unable to start WebSocketServerNode", asyncRes.cause());
+                    }
                 });
 
         vertxSet.add(vertx);

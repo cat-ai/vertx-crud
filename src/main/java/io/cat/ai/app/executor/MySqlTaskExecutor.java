@@ -2,6 +2,7 @@ package io.cat.ai.app.executor;
 
 import com.typesafe.config.Config;
 
+import io.cat.ai.app.crud.CrudUtils;
 import io.cat.ai.core.executor.VertxDbTaskExecutor;
 
 import io.vertx.core.AsyncResult;
@@ -16,8 +17,6 @@ import lombok.val;
 
 import java.util.List;
 
-import static io.cat.ai.app.crud.CrudUtils.mySqlQueryArg;
-
 public class MySqlTaskExecutor implements VertxDbTaskExecutor<String, JsonArray> {
 
     private final SQLClient client;
@@ -26,8 +25,8 @@ public class MySqlTaskExecutor implements VertxDbTaskExecutor<String, JsonArray>
         val mySqlJsonObjConf = new JsonObject();
 
         mySqlJsonObjConf
-                .put("username", config.getString("mysql.cred.username"))
-                .put("password", config.getString("mysql.cred.password"))
+                .put("username", config.getString("mysql.crud.username"))
+                .put("password", config.getString("mysql.crud.password"))
                 .put("database", config.getString("mysql.database"))
                 .put("maxPoolSize", config.getInt("mysql.pool.maxPoolSize"))
                 .put("host", config.getString("mysql.host"))
@@ -38,7 +37,7 @@ public class MySqlTaskExecutor implements VertxDbTaskExecutor<String, JsonArray>
 
     @Override
     public void executeSingle(String query, Handler<AsyncResult<JsonArray>> asyncResult, String... params) {
-        client.querySingleWithParams(query, mySqlQueryArg(params), asyncResult);
+        client.querySingleWithParams(query, CrudUtils.mySqlQueryArg(params), asyncResult);
     }
 
     @Override

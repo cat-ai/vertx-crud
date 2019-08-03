@@ -10,26 +10,25 @@ import io.vertx.ext.web.RoutingContext;
 
 public class HttpCrudService {
 
-    private final VertxHttpCrud pgCrud;
+    private final VertxHttpCrud crud;
 
     HttpCrudService(Vertx vertx, Config conf) {
-        this.pgCrud = CrudFactory.newVertxPgHttpCrud(vertx, conf);
+        this.crud = CrudFactory.newVertxHttpCrud(vertx, conf);
     }
 
     public void findOrCreate(final RoutingContext ctx, final String... params) {
-        pgCrud.select(ctx, params);
+        crud.select(ctx, params);
     }
 
     public void addNew(final RoutingContext ctx, final String... params) {
-        pgCrud.insert(ctx, params);
+        crud.insert(ctx, params);
     }
 
     public void remove(final RoutingContext ctx, final String... params) {
-        pgCrud.delete(ctx, params);
+        crud.delete(ctx, params);
     }
 
     public void updateClient(final RoutingContext ctx, final String... params) {
-        pgCrud.update(ctx, params);
+        crud.update(ctx, params);
     }
-
 }

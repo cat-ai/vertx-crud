@@ -4,11 +4,16 @@ import com.typesafe.config.Config;
 
 import io.cat.ai.app.executor.PgTaskExecutor;
 import io.cat.ai.app.executor.TaskExecutorFactory;
-import io.cat.ai.model.Client;
+import io.cat.ai.model.User;
 import io.cat.ai.model.ResponseMessage;
 import io.cat.ai.model.WebsocketMessage;
-import io.cat.ai.vertx.websocket.cache.WsChannelCache;
+import io.cat.ai.vertx.VertxRequestUtil;
+import io.cat.ai.vertx.websocket.WebSocketFrameWriter;
+import io.cat.ai.vertx.websocket.cache.WebSocketChannelCache;
 
+import io.reactiverse.pgclient.PgRowSet;
+
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.logging.Logger;
@@ -19,23 +24,32 @@ import lombok.val;
 import java.util.Optional;
 
 import static io.cat.ai.app.crud.CrudUtils.*;
-import static io.cat.ai.vertx.VertxRequestUtil.*;
-import static io.cat.ai.vertx.websocket.WebSocketChannel.*;
 
 public class WebSocketFrameProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(WebSocketFrameProcessor.class);
 
-    private static final ResponseMessage incorrectMsg = new ResponseMessage("Incorrect JSON message");
-    private static final ResponseMessage incorrectMethodMsg = new ResponseMessage("Incorrect method");
-    private static final ResponseMessage internalErrorMsg = new ResponseMessage("Something get wrong");
+    private static final ResponseMessage INVALID_MSG = new ResponseMessage("Invalid JSON message");
+    private static final ResponseMessage INVALID_METHOD_MSG = new ResponseMessage("Invalid method");
+    private static final ResponseMessage INTERNAL_ERROR_MSG = new ResponseMessage("Something get wrong");
 
-    private final WsChannelCache cache;
+    private final WebSocketChannelCache<ServerWebSocket> cache;
     private final PgTaskExecutor taskExecutor;
 
-    public WebSocketFrameProcessor(Vertx vertx, Config config, WsChannelCache cache) {
+    public WebSocketFrameProcessor(Vertx vertx, Config config, WebSocketChannelCache<ServerWebSocket> cache) {
         this.cache = cache;
         this.taskExecutor = TaskExecutorFactory.newPgTaskExecutor(vertx, config);
+    }
+
+    private void getNicknameFromRowAndWriteFrame(   ServerWebSocket websocket, AsyncResult<PgRowSet> asyncResult) {
+        val it = asyncResult.result().iterator();
+
+        if (it.hasNext()) {
+            val row = it.next();
+            WebSocketFrameWriter.writeFrame(new ResponseMessage(row.getString("nickname")), websocket);
+        } else {
+            WebSocketFrameWriter.writeFrame(INTERNAL_ERROR_MSG, websocket);
+        }
     }
 
     public void process(ServerWebSocket websocket) {
@@ -45,9 +59,11 @@ public class WebSocketFrameProcessor {
             if (frame.isClose()) {
                 cache.removeChannel(websocket);
                 return;
+            } else if (frame.isText()) {
+                wsReqMsgOpt = VertxRequestUtil.parseBodyOpt(frame.textData(), WebsocketMessage.class);
+            } else {
+                wsReqMsgOpt = VertxRequestUtil.parseBodyOpt(frame.binaryData(), WebsocketMessage.class);
             }
-            else if (frame.isText()) wsReqMsgOpt = parseBodyOpt(frame.textData(), WebsocketMessage.class);
-            else wsReqMsgOpt = parseBodyOpt(frame.binaryData(), WebsocketMessage.class);
 
             wsReqMsgOpt.ifPresent(__ -> {
                 val msgBody = __.getMsg();
@@ -58,20 +74,18 @@ public class WebSocketFrameProcessor {
                         taskExecutor.executeSingle(
                                 SELECT_IF_EXISTS_OR_CREATE_IF_NOT,
                                 asyncResult -> {
-
                                     if (asyncResult.succeeded()) {
                                         val it = asyncResult.result().iterator();
 
                                         if (it.hasNext()) {
-                                            val column = it.next();
+                                            val row = it.next();
+                                            val client = new User(row.getString("email"), row.getString("name"), row.getString("nickname"));
 
-                                            val client = new Client(column.getString(1), column.getString(2), column.getString(3));
-
-                                            writeFrame(new ResponseMessage(client), websocket);
+                                            WebSocketFrameWriter.writeFrame(new ResponseMessage(client), websocket);
                                         }
                                     } else {
-                                        logger.error("Client " + msgBody.getEmail() + " @findOrCreate method error: " + asyncResult.cause().getMessage());
-                                        writeFrame(internalErrorMsg, websocket);
+                                        logger.error("User " + msgBody.getEmail() + " @findOrCreate method error: " + asyncResult.cause().getMessage());
+                                        WebSocketFrameWriter.writeFrame(INTERNAL_ERROR_MSG, websocket);
                                     }
                                 },
                                 msgBody.getNickname(), msgBody.getEmail(), msgBody.getName()
@@ -82,18 +96,11 @@ public class WebSocketFrameProcessor {
                         taskExecutor.executeSingle(
                                 INSERT_CLIENT,
                                 asyncResult -> {
-
                                     if (asyncResult.succeeded()) {
-                                        val it = asyncResult.result().iterator();
-
-                                        if (it.hasNext()) {
-                                            val row = it.next();
-                                            writeFrame(new ResponseMessage("Created new client: " + row.getString(1)), websocket);
-                                        }
-                                    }
-                                    else {
-                                        logger.error("Client " + msgBody.getEmail() + " @addNew method error: " + asyncResult.cause().getMessage());
-                                        writeFrame(internalErrorMsg, websocket);
+                                        getNicknameFromRowAndWriteFrame(websocket, asyncResult);
+                                    } else {
+                                        logger.error("User " + msgBody.getEmail() + " @addNew method error: " + asyncResult.cause().getMessage());
+                                        WebSocketFrameWriter.writeFrame(INTERNAL_ERROR_MSG, websocket);
                                     }
                                 },
                                 msgBody.getEmail(), msgBody.getName(), msgBody.getNickname()
@@ -104,15 +111,14 @@ public class WebSocketFrameProcessor {
                         taskExecutor.executeSingle(
                                 REMOVE_CLIENT,
                                 asyncResult -> {
-                                    if (asyncResult.succeeded())
-                                        writeFrame(new ResponseMessage("Removed client: " + msgBody.getNickname()), websocket);
-
-                                    else {
-                                        logger.error("Client " + msgBody.getEmail() + " @remove method error: " + asyncResult.cause().getMessage());
-                                        writeFrame(internalErrorMsg, websocket);
+                                    if (asyncResult.succeeded()) {
+                                        getNicknameFromRowAndWriteFrame(websocket, asyncResult);
+                                    } else {
+                                        logger.error("User " + msgBody.getEmail() + " @remove method error: " + asyncResult.cause().getMessage());
+                                        WebSocketFrameWriter.writeFrame(INTERNAL_ERROR_MSG, websocket);
                                     }
                                 },
-                                msgBody.getEmail()
+                                msgBody.getNickname()
                         );
                         return;
 
@@ -120,22 +126,25 @@ public class WebSocketFrameProcessor {
                         taskExecutor.executeSingle(
                                 UPDATE_CLIENT_SET_EMAIL,
                                 asyncResult -> {
-
-                                    if (asyncResult.succeeded())
-                                        writeFrame(new ResponseMessage("Email changed to " + msgBody.getEmail()), websocket);
-                                    else {
-                                        logger.error("Client " + msgBody.getNickname() + " @updateClient method error: " + asyncResult.cause().getMessage());
-                                        writeFrame(internalErrorMsg, websocket);
+                                    if (asyncResult.succeeded()) {
+                                        val it = asyncResult.result().iterator();
+                                        if (it.hasNext()) {
+                                            val row = it.next();
+                                            WebSocketFrameWriter.writeFrame(new ResponseMessage(row.getString("email")), websocket);
+                                        }
+                                    } else {
+                                        logger.error("User " + msgBody.getNickname() + " @updateClient method error: " + asyncResult.cause().getMessage());
+                                        WebSocketFrameWriter.writeFrame(INTERNAL_ERROR_MSG, websocket);
                                     }
                                 },
-                                msgBody.getEmail()
+                                msgBody.getEmail(), msgBody.getNickname()
                         );
                         return;
 
                     default:
-                        writeFrame(incorrectMethodMsg, websocket);
+                        WebSocketFrameWriter.writeFrame(INVALID_METHOD_MSG, websocket);
                 }
-                writeFrame(incorrectMsg, websocket);
+                WebSocketFrameWriter.writeFrame(INVALID_MSG, websocket);
             });
         });
     }

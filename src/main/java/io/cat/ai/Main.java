@@ -18,9 +18,10 @@ class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-    private static volatile boolean isStarted = false;
+    private static volatile boolean isShutdownHookStarted = false;
 
     public static void main(String[] args) throws InterruptedException {
+
         val injector = Guice.createInjector(new AppModule());
 
         logger.info("Google Guice Injector created");
@@ -37,13 +38,13 @@ class Main {
         val latch = new CountDownLatch(1);
         Runtime.getRuntime()
                 .addShutdownHook(new Thread(() -> {
-                    isStarted = true;
+                    isShutdownHookStarted = true;
                     logger.warn("Application exited!");
                     app.stop();
                     latch.countDown();
                 }));
 
-        while (!isStarted)
+        while (!isShutdownHookStarted)
             latch.await();
     }
 }

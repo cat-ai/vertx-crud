@@ -38,20 +38,22 @@ public class Http11ServerNode implements Node {
 
         val vertx = Vertx.vertx(new VertxOptions().setPreferNativeTransport(config.getBoolean("vertx.http.preferNativeTransport")));
 
-        if (vertx.isNativeTransportEnabled())
+        if (vertx.isNativeTransportEnabled()) {
             logger.info("Http11ServerNode native transport enabled: using " + Transport.nativeTransport().getClass().getSimpleName());
-        else
+        } else {
             logger.debug("Http11ServerNode native transport is not enabled");
+        }
 
         vertx.deployVerticle(
                 () -> VerticleFactory.newHttp11Verticle(config),
 
                 new DeploymentOptions().setInstances(CpuCoreSensor.availableProcessors() * 2), event -> {
 
-                    if (event.succeeded())
+                    if (event.succeeded()) {
                         logger.debug("Http11ServerNode started!");
-                    else
+                    } else {
                         logger.error("Unable to start Http11ServerNode", event.cause());
+                    }
                 });
 
         vertxSet.add(vertx);

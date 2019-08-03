@@ -6,15 +6,11 @@ import io.cat.ai.vertx.websocket.handler.WebSocketHandler;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 
 import lombok.*;
 
 @NoArgsConstructor
 public class WebSocketVerticle extends AbstractVerticle {
-
-    private static final Logger logger = LoggerFactory.getLogger(WebSocketVerticle.class);
 
     @Setter private Config config;
 
@@ -30,8 +26,5 @@ public class WebSocketVerticle extends AbstractVerticle {
                         .setReusePort(config.getBoolean("vertx.ws.reusePort")))
                 .websocketHandler(wsHandler::handle)
                 .listen(wsPort);
-
-        logger.info(this.getClass().getSimpleName() + " instance started at port " + wsPort);
     }
-
 }

@@ -15,13 +15,13 @@ public class CrudFactory {
         return new VertxPgHttpCrud(vertx, conf);
     }
 
-    public static  VertxHttpCrud newVertxMySqlHttpCrud(final Vertx vertx, final Config conf) {
+    public static VertxHttpCrud newVertxMySqlHttpCrud(final Vertx vertx, final Config conf) {
         return new VertxMySqlHttpCrud(vertx, conf);
     }
 
-    public static VertxHttpCrud newVertxHttpCrud(final String crud,
-                                                 final Vertx vertx,
-                                                 final Config conf) {
+    public static VertxHttpCrud newVertxHttpCrud(final Vertx vertx, final Config conf) {
+        val crud = conf.getString("vertx.crud.description");
+
         switch (crud) {
             case "pg":
             case "postgre":
@@ -34,14 +34,14 @@ public class CrudFactory {
             case "PostgreSql":
             case "PostgreSQL":
             case "POSTGRESQL":
-                return new VertxPgHttpCrud(vertx, conf);
+                return newVertxPgHttpCrud(vertx, conf);
 
             case "mysql":
             case "mySql":
             case "Mysql":
             case "MySql":
             case "MYSQL":
-                return new VertxMySqlHttpCrud(vertx, conf);
+                return newVertxMySqlHttpCrud(vertx, conf);
 
              default:
                 throw new RuntimeException(crud + " not found");

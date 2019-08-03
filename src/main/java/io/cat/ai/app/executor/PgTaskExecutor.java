@@ -2,6 +2,7 @@ package io.cat.ai.app.executor;
 
 import com.typesafe.config.Config;
 
+import io.cat.ai.app.crud.CrudUtils;
 import io.cat.ai.core.executor.VertxDbTaskExecutor;
 
 import io.reactiverse.pgclient.*;
@@ -14,7 +15,6 @@ import lombok.val;
 
 import java.util.List;
 
-import static io.cat.ai.app.crud.CrudUtils.pgQueryArg;
 
 public class PgTaskExecutor implements VertxDbTaskExecutor<Tuple, PgRowSet> {
 
@@ -26,8 +26,8 @@ public class PgTaskExecutor implements VertxDbTaskExecutor<Tuple, PgRowSet> {
         options.setDatabase(config.getString("pg.database"));
         options.setHost(config.getString("pg.host"));
         options.setPort(config.getInt("pg.port"));
-        options.setUser(config.getString("pg.cred.username"));
-        options.setPassword(config.getString("pg.cred.password"));
+        options.setUser(config.getString("pg.crud.username"));
+        options.setPassword(config.getString("pg.crud.password"));
         options.setReusePort(config.getBoolean("pg.pool.reusePort"));
         options.setTcpQuickAck(config.getBoolean("pg.pool.tcpQuickAck"));
         options.setTcpFastOpen(config.getBoolean("pg.pool.tcpFastOpen"));
@@ -39,7 +39,7 @@ public class PgTaskExecutor implements VertxDbTaskExecutor<Tuple, PgRowSet> {
 
     @Override
     public void executeSingle(String query, Handler<AsyncResult<PgRowSet>> asyncResultHandler, String... args) {
-        client.preparedQuery(query, pgQueryArg(args), asyncResultHandler);
+        client.preparedQuery(query, CrudUtils.pgQueryArg(args), asyncResultHandler);
     }
 
     @Override

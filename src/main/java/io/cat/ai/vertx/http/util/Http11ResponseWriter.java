@@ -9,24 +9,23 @@ import io.vertx.ext.web.RoutingContext;
 import lombok.*;
 
 import static io.netty.handler.codec.http.HttpHeaderValues.*;
+
 import static io.vertx.core.http.HttpHeaders.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class Http11ResponseUtil {
+public class Http11ResponseWriter {
 
-    private static final CharSequence SERVER_VALUE = HttpHeaders.createOptimized("cat-ai-vertx");
+    private static final CharSequence SERVER_VALUE = HttpHeaders.createOptimized("io.cat.ai.vertx-crud");
 
     public static void write(RoutingContext ctx, MimeType mimeType, Buffer buffer) {
         val res = ctx.request().response();
 
-        fillHeaders(res.headers(), mimeType, buffer.length());
+        setHeaders(res.headers(), mimeType, buffer.length());
 
         write(res, buffer);
     }
 
-    private static void fillHeaders(MultiMap headers, MimeType mimeType, int contLen) {
-        headers.add(SERVER, SERVER_VALUE);
-
+    private static void setHeaders(MultiMap headers, MimeType mimeType, int contLen) {
         switch(mimeType) {
 
             case APP_JSON:
@@ -38,6 +37,7 @@ public class Http11ResponseUtil {
                 break;
         }
 
+        headers.add(SERVER, SERVER_VALUE);
         headers.add(CONTENT_LENGTH, String.valueOf(contLen));
     }
 

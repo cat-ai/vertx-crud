@@ -18,7 +18,7 @@ public class VerticleFactory {
         return http11Verticle;
     }
 
-    public static  AbstractVerticle newWebsocketVerticle(final Config config) {
+    public static AbstractVerticle newWebsocketVerticle(final Config config) {
         val websocketVerticle = new WebSocketVerticle();
         websocketVerticle.setConfig(config);
         return websocketVerticle;

@@ -10,5 +10,4 @@ public enum MimeType {
     APP_ZIP,
     APP_GZIP,
     APP_XML
-
 }

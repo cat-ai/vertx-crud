@@ -4,6 +4,8 @@ import com.typesafe.config.Config;
 
 import io.cat.ai.model.Http11RequestMessage;
 import io.cat.ai.model.ResponseMessage;
+import io.cat.ai.vertx.VertxRequestUtil;
+import io.cat.ai.vertx.http.Http11Channel;
 import io.cat.ai.vertx.http.service.HttpCrudService;
 import io.cat.ai.vertx.http.service.HttpCrudServiceFactory;
 
@@ -12,15 +14,11 @@ import io.vertx.ext.web.RoutingContext;
 
 import lombok.val;
 
-import static io.cat.ai.vertx.VertxRequestUtil.*;
-import static io.cat.ai.vertx.http.Http11Channel.*;
-
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
+import static java.util.Objects.*;
 
 public class Http11RequestHandler {
 
-    private static final ResponseMessage incorrectBodyMsg = new ResponseMessage("Incorrect JSON body");
+    private static final ResponseMessage INVALID_JSON_BODY = new ResponseMessage("Invalid JSON body");
 
     private final HttpCrudService service;
 
@@ -29,57 +27,58 @@ public class Http11RequestHandler {
     }
 
     public void handleBase(RoutingContext ctx) {
-        ok(ctx);
+        Http11Channel.ok(ctx);
     }
 
     public void handleGet(RoutingContext ctx) {
         val nickname = getNicknameParam(ctx);
+        val email = VertxRequestUtil.queryParam(ctx, "email");
+        val name = VertxRequestUtil.queryParam(ctx, "name");
 
-        val email = queryParam(ctx, "email");
-
-        val name = queryParam(ctx, "name");
-
-        if (isNull(nickname)) noContent(ctx);
-
-        else if (nonNull(email) && nonNull(name))
+        if (isNull(nickname)) {
+            Http11Channel.noContent(ctx);
+        } else if (nonNull(email) && nonNull(name)) {
             service.findOrCreate(ctx, email, name, nickname);
-
-        else badRequest(ctx);
+        } else {
+            Http11Channel.badRequest(ctx);
+        }
     }
 
     public void handlePost(RoutingContext ctx) {
-        val json = parseBody(ctx, Http11RequestMessage.class);
+        val json = VertxRequestUtil.parseBody(ctx, Http11RequestMessage.class);
 
-        if (nonNull(json))
+        if (nonNull(json)) {
             service.updateClient(ctx, json.getMsg().getEmail(), json.getMsg().getNickname());
-
-        else badRequestJson(ctx, incorrectBodyMsg);
+        } else {
+            Http11Channel.badRequestJson(ctx, INVALID_JSON_BODY);
+        }
     }
 
     public void handlePut(RoutingContext ctx) {
         val nickname = getNicknameParam(ctx);
+        val email = VertxRequestUtil.queryParam(ctx, "email");
+        val name = VertxRequestUtil.queryParam(ctx, "name");
 
-        val email = queryParam(ctx, "email");
-
-        val name = queryParam(ctx, "name");
-
-        if (isNull(nickname)) noContent(ctx);
-
-        else if (nonNull(email) && nonNull(name))
+        if (isNull(nickname)) {
+            Http11Channel.noContent(ctx);
+        } else if (nonNull(email) && nonNull(name)) {
             service.addNew(ctx, email, name, nickname);
-
-        else badRequest(ctx);
+        } else {
+            Http11Channel.badRequest(ctx);
+        }
     }
 
     public void handleDelete(RoutingContext ctx) {
         val nickname = getNicknameParam(ctx);
 
-        if (nonNull(nickname)) service.remove(ctx, nickname);
-
-        else noContent(ctx);
+        if (nonNull(nickname)) {
+            service.remove(ctx, nickname);
+        } else {
+            Http11Channel.noContent(ctx);
+        }
     }
 
     private String getNicknameParam(RoutingContext ctx) {
-        return pathParam(ctx, "nickname");
+        return VertxRequestUtil.pathParam(ctx, "nickname");
     }
 }

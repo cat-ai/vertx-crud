@@ -7,6 +7,5 @@ public class WebsocketMessage {
 
     private String method;
 
-    private Client msg;
-
+    private User msg;
 }

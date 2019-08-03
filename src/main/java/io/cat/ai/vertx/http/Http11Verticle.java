@@ -6,8 +6,6 @@ import io.cat.ai.vertx.http.handler.Http11RequestHandler;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CookieHandler;
@@ -16,8 +14,6 @@ import lombok.*;
 
 @NoArgsConstructor
 public class Http11Verticle extends AbstractVerticle {
-
-    private static final Logger logger = LoggerFactory.getLogger(Http11Verticle.class);
 
     @Setter private Config config;
 
@@ -35,13 +31,13 @@ public class Http11Verticle extends AbstractVerticle {
 
         router.get("/").handler(handler::handleBase);
 
-        router.get("/api/:nickname").handler(handler::handleGet);
+        router.get("/api/user/:nickname").handler(handler::handleGet);
 
-        router.post("/api").handler(handler::handlePost);
+        router.post("/api/user").handler(handler::handlePost);
 
-        router.put("/api/:nickname").handler(handler::handlePut);
+        router.put("/api/user/:nickname").handler(handler::handlePut);
 
-        router.delete("/api/:nickname").handler(handler::handleDelete);
+        router.delete("/api/user/:nickname").handler(handler::handleDelete);
 
         vertx.createHttpServer(new HttpServerOptions()
                 .setTcpQuickAck(config.getBoolean("vertx.http.tcpQuickAck"))
@@ -49,8 +45,6 @@ public class Http11Verticle extends AbstractVerticle {
                 .setTcpFastOpen(config.getBoolean("vertx.http.tcpFastOpen")))
                 .requestHandler(router)
                 .listen(httpPort);
-
-        logger.info(this.getClass().getSimpleName() + " instance started at port: " + httpPort);
     }
 
 }

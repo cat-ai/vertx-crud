@@ -1,6 +1,6 @@
 package io.cat.ai.vertx.http;
 
-import io.cat.ai.vertx.http.util.Http11ResponseUtil;
+import io.cat.ai.vertx.http.util.Http11ResponseWriter;
 import io.cat.ai.vertx.http.util.MimeType;
 
 import io.vertx.core.buffer.Buffer;
@@ -8,14 +8,13 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Http11Channel {
 
     private static final Buffer BAD_REQUEST_MSG = Buffer.buffer(String.valueOf(HttpHeaders.createOptimized("Bad Request")));
-    private static final Buffer INTERNAL_SERVER_ERROR_MSG = Buffer.buffer(String.valueOf(HttpHeaders.createOptimized("Bad Request")));
+    private static final Buffer INTERNAL_SERVER_ERROR_MSG = Buffer.buffer(String.valueOf(HttpHeaders.createOptimized("Internal Server Error")));
     private static final Buffer NOT_FOUND_MSG = Buffer.buffer(String.valueOf(HttpHeaders.createOptimized("Not Found")));
     private static final Buffer UNAUTHORIZED = Buffer.buffer(String.valueOf(HttpHeaders.createOptimized("Unauthorized")));
     private static final Buffer OK = Buffer.buffer(String.valueOf(HttpHeaders.createOptimized("Ok")));
@@ -40,17 +39,17 @@ public class Http11Channel {
 
     public static void ok(RoutingContext ctx, MimeType mimeType, Buffer msg) {
         ctx.request().response().setStatusCode(OK_CODE);
-        Http11ResponseUtil.write(ctx, mimeType, msg);
+        Http11ResponseWriter.write(ctx, mimeType, msg);
     }
 
     public static void accepted(RoutingContext ctx) {
         ctx.request().response().setStatusCode(ACCEPTED_CODE);
-        Http11ResponseUtil.write(ctx,  MimeType.TXT_PLAIN, ACCEPTED);
+        Http11ResponseWriter.write(ctx, MimeType.TXT_PLAIN, ACCEPTED);
     }
 
     public static void noContent(RoutingContext ctx) {
         ctx.request().response().setStatusCode(NO_CONTENT_CODE);
-        Http11ResponseUtil.write(ctx, MimeType.TXT_PLAIN, NO_CONTENT);
+        Http11ResponseWriter.write(ctx, MimeType.TXT_PLAIN, NO_CONTENT);
     }
 
     public static void badRequest(RoutingContext ctx) {
@@ -59,40 +58,40 @@ public class Http11Channel {
 
     public static void badRequest(RoutingContext ctx, Buffer buffer, MimeType mimeType) {
         ctx.request().response().setStatusCode(BAD_REQUEST_CODE);
-        Http11ResponseUtil.write(ctx, mimeType, buffer);
+        Http11ResponseWriter.write(ctx, mimeType, buffer);
     }
 
     public static void badRequestJson(RoutingContext ctx, Object msg) {
         ctx.request().response().setStatusCode(BAD_REQUEST_CODE);
-        Http11ResponseUtil.write(ctx, MimeType.APP_JSON, Json.encodeToBuffer(msg));
+        Http11ResponseWriter.write(ctx, MimeType.APP_JSON, Json.encodeToBuffer(msg));
     }
 
     public static void unauthorized(RoutingContext ctx) {
         ctx.request().response().setStatusCode(UNAUTHORIZED_CODE);
-        Http11ResponseUtil.write(ctx,  MimeType.TXT_PLAIN, UNAUTHORIZED);
+        Http11ResponseWriter.write(ctx,  MimeType.TXT_PLAIN, UNAUTHORIZED);
     }
 
     public static void unauthorized(RoutingContext ctx, MimeType type, Buffer msg) {
         ctx.request().response().setStatusCode(UNAUTHORIZED_CODE);
-        Http11ResponseUtil.write(ctx,  type, msg);
+        Http11ResponseWriter.write(ctx,  type, msg);
     }
 
     public static void badRequest(RoutingContext ctx, MimeType mimeType) {
-        Http11ResponseUtil.write(ctx, mimeType, BAD_REQUEST_MSG);
+        Http11ResponseWriter.write(ctx, mimeType, BAD_REQUEST_MSG);
     }
 
     public static void notFound(RoutingContext ctx) {
         ctx.request().response().setStatusCode(NOT_FOUND_CODE);
-        Http11ResponseUtil.write(ctx,  MimeType.TXT_PLAIN, NOT_FOUND_MSG);
+        Http11ResponseWriter.write(ctx,  MimeType.TXT_PLAIN, NOT_FOUND_MSG);
     }
 
     public static void internalServerError(RoutingContext ctx) {
         ctx.request().response().setStatusCode(INTERNAL_SERVER_ERROR_CODE);
-        Http11ResponseUtil.write(ctx, MimeType.TXT_PLAIN, INTERNAL_SERVER_ERROR_MSG);
+        Http11ResponseWriter.write(ctx, MimeType.TXT_PLAIN, INTERNAL_SERVER_ERROR_MSG);
     }
 
     public static void internalServerError(RoutingContext ctx, Throwable exc) {
         ctx.request().response().setStatusCode(INTERNAL_SERVER_ERROR_CODE);
-        Http11ResponseUtil.write(ctx, MimeType.TXT_PLAIN, Buffer.buffer(exc.getMessage()));
+        Http11ResponseWriter.write(ctx, MimeType.TXT_PLAIN, Buffer.buffer(exc.getMessage()));
     }
 }

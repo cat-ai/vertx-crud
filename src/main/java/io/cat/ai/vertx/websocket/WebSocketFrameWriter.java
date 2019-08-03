@@ -10,7 +10,7 @@ import io.vertx.core.json.Json;
 import lombok.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class WebSocketChannel {
+public class WebSocketFrameWriter {
 
     public static void writeFrame(Object msg, ServerWebSocket serverWebSocket, boolean isClosed) {
         if (!isClosed)

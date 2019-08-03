@@ -2,20 +2,20 @@ package io.cat.ai.app.crud;
 
 import com.typesafe.config.Config;
 
-import io.cat.ai.app.executor.MySqlTaskExecutor;
 import io.cat.ai.app.executor.TaskExecutorFactory;
 import io.cat.ai.core.crud.VertxHttpCrud;
-import io.cat.ai.model.Client;
+import io.cat.ai.core.executor.VertxDbTaskExecutor;
+import io.cat.ai.model.User;
 import io.cat.ai.model.ResponseMessage;
+import io.cat.ai.vertx.http.Http11Channel;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 
 import lombok.val;
-
-import static io.cat.ai.vertx.http.Http11Channel.*;
 
 // not tested!
 // Native transport (KQueue x86-64) not supported for MySQL client
@@ -23,7 +23,7 @@ public class VertxMySqlHttpCrud implements VertxHttpCrud {
 
     private static final Logger logger = LoggerFactory.getLogger(VertxMySqlHttpCrud.class);
 
-    private final MySqlTaskExecutor executor;
+    private final VertxDbTaskExecutor<String, JsonArray> executor;
 
     VertxMySqlHttpCrud(Vertx vertx, Config config) {
         this.executor = TaskExecutorFactory.newMySqlTaskExecutor(vertx, config);
@@ -37,13 +37,12 @@ public class VertxMySqlHttpCrud implements VertxHttpCrud {
                     if (asyncResult.succeeded()) {
                         val row = asyncResult.result();
 
-                        val client = new Client(row.getString(1), row.getString(2), row.getString(3));
+                        val client = new User(row.getString(1), row.getString(2), row.getString(3));
 
-                        jsonOk(ctx, new ResponseMessage(client));
-                    }
-                    else {
+                        Http11Channel.jsonOk(ctx, new ResponseMessage(client));
+                    } else {
                         logger.error(asyncResult.cause());
-                        internalServerError(ctx, asyncResult.cause());
+                        Http11Channel.internalServerError(ctx, asyncResult.cause());
                     }
                 },
                 params
@@ -57,11 +56,10 @@ public class VertxMySqlHttpCrud implements VertxHttpCrud {
                 asyncResult -> {
                     if (asyncResult.succeeded()) {
                         val row = asyncResult.result();
-                        jsonOk(ctx, new ResponseMessage("Email changed to " + row.getString(0)));
-                    }
-                    else {
+                        Http11Channel.jsonOk(ctx, new ResponseMessage(row.getString(0)));
+                    } else {
                         logger.error(asyncResult.cause());
-                        internalServerError(ctx, asyncResult.cause());
+                        Http11Channel.internalServerError(ctx, asyncResult.cause());
                     }
                 },
                 params
@@ -73,15 +71,11 @@ public class VertxMySqlHttpCrud implements VertxHttpCrud {
         executor.executeSingle(
                 "", // implement with MySQL dialect
                 asyncResult -> {
-
                     if (asyncResult.succeeded()) {
-                        val row = asyncResult.result();
-
-                        jsonOk(ctx, new ResponseMessage("Removed client: " + row.getString(0)));
-                    }
-                    else {
+                        Http11Channel.jsonOk(ctx, new ResponseMessage(asyncResult.result().getString(0)));
+                    } else {
                         logger.error(asyncResult.cause());
-                        internalServerError(ctx, asyncResult.cause());
+                        Http11Channel.internalServerError(ctx, asyncResult.cause());
                     }
                 },
                 params
@@ -93,15 +87,13 @@ public class VertxMySqlHttpCrud implements VertxHttpCrud {
         executor.executeSingle(
                 "", // implement with MySQL dialect
                 asyncResult -> {
-
                     if (asyncResult.succeeded()) {
                         val row = asyncResult.result();
 
-                        jsonOk(ctx, new ResponseMessage("Created new client: " + row.getString(1)));
-                    }
-                    else {
+                        Http11Channel.jsonOk(ctx, new ResponseMessage(row.getString(1)));
+                    } else {
                         logger.error(asyncResult.cause());
-                        internalServerError(ctx, asyncResult.cause());
+                        Http11Channel.internalServerError(ctx, asyncResult.cause());
                     }
                 },
                 params

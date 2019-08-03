@@ -28,14 +28,13 @@ public class CrudUtils {
                     "select id, \"email\", \"name\", \"nickname\"\n" +
                     "from sel";
 
-    public static final String UPDATE_CLIENT_SET_EMAIL = "update client set email=$1 where nickname=$2";
+    public static final String UPDATE_CLIENT_SET_EMAIL = "update client set email=($1) where nickname=($2) returning email";
 
-    public static final String REMOVE_CLIENT = "delete from client where nickname=$1";
+    public static final String REMOVE_CLIENT = "delete from client where nickname=($1) returning nickname";
 
     public static final String INSERT_CLIENT = "insert into client (email, name, nickname) values ($1, $2 ,$3) RETURNING id, nickname";
 
     public static Tuple pgQueryArg(String... args) {
-        // TODO refactor
         switch(args.length) {
             case 1:
                 return Tuple.of(args[0]);
@@ -50,12 +49,12 @@ public class CrudUtils {
             case 6:
                 return Tuple.of(args[0], args[1], args[2], args[3], args[4], args[5]);
             default:
-                return Tuple.of(args); // fix
+                throw new IllegalArgumentException();
         }
     }
 
     public static JsonArray mySqlQueryArg(String... args) {
-        // TODO refactor too!
+        // TODO refactor
         return new JsonArray(Arrays.asList(args));
     }
 }

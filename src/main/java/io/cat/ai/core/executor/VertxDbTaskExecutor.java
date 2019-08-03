@@ -10,5 +10,4 @@ public interface VertxDbTaskExecutor<T, R> extends TaskExecutor<String, T, Handl
     void executeSingle(String query, Handler<AsyncResult<R>> asyncResultHandler, String... args);
 
     void executeBatch(String sql, Handler<AsyncResult<R>> asyncResultHandler, List<T> batch);
-
 }
