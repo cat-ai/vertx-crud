@@ -11,26 +11,11 @@ import java.util.Arrays;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CrudUtils {
 
-    public static final String SELECT_IF_EXISTS_OR_CREATE_IF_NOT =
-            "with sel as (\n" +
-                    "    select id, \"email\", \"name\", \"nickname\"\n" +
-                    "    from client\n" +
-                    "    where email=$1 and nickname=$3\n" +
-                    "), ins as (\n" +
-                    "    insert into client (\"email\", \"name\", \"nickname\")\n" +
-                    "    select $1, $2, $3\n" +
-                    "    where not exists (select 1 from sel)\n" +
-                    "    returning id, \"email\", \"name\",  \"nickname\"\n" +
-                    ")\n" +
-                    "select id, \"email\", \"name\", \"nickname\"\n" +
-                    "from ins\n" +
-                    "union all\n" +
-                    "select id, \"email\", \"name\", \"nickname\"\n" +
-                    "from sel";
+    public static final String SELECT_CLIENT = "select * from client where nickname=($1) and email=($2)";
 
-    public static final String UPDATE_CLIENT_SET_EMAIL = "update client set email=($1) where nickname=($2) returning email";
+    public static final String UPDATE_CLIENT_SET_EMAIL = "update client set email=($1) where nickname=($2) RETURNING email";
 
-    public static final String REMOVE_CLIENT = "delete from client where nickname=($1) returning nickname";
+    public static final String REMOVE_CLIENT = "delete from client where nickname=($1) RETURNING nickname";
 
     public static final String INSERT_CLIENT = "insert into client (email, name, nickname) values ($1, $2 ,$3) RETURNING id, nickname";
 

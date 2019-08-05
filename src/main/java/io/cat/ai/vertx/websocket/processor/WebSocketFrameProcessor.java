@@ -31,7 +31,7 @@ public class WebSocketFrameProcessor {
 
     private static final ResponseMessage INVALID_MSG = new ResponseMessage("Invalid JSON message");
     private static final ResponseMessage INVALID_METHOD_MSG = new ResponseMessage("Invalid method");
-    private static final ResponseMessage INTERNAL_ERROR_MSG = new ResponseMessage("Something get wrong");
+    private static final ResponseMessage CONFLICT_MSG = new ResponseMessage("Conflict");
 
     private final WebSocketChannelCache<ServerWebSocket> cache;
     private final PgTaskExecutor taskExecutor;
@@ -48,7 +48,7 @@ public class WebSocketFrameProcessor {
             val row = it.next();
             WebSocketFrameWriter.writeFrame(new ResponseMessage(row.getString("nickname")), websocket);
         } else {
-            WebSocketFrameWriter.writeFrame(INTERNAL_ERROR_MSG, websocket);
+            WebSocketFrameWriter.writeFrame(CONFLICT_MSG, websocket);
         }
     }
 
@@ -70,9 +70,9 @@ public class WebSocketFrameProcessor {
 
                 switch (__.getMethod()) {
 
-                    case "findOrCreate":
+                    case "findClient":
                         taskExecutor.executeSingle(
-                                SELECT_IF_EXISTS_OR_CREATE_IF_NOT,
+                                SELECT_CLIENT,
                                 asyncResult -> {
                                     if (asyncResult.succeeded()) {
                                         val it = asyncResult.result().iterator();
@@ -84,38 +84,38 @@ public class WebSocketFrameProcessor {
                                             WebSocketFrameWriter.writeFrame(new ResponseMessage(client), websocket);
                                         }
                                     } else {
-                                        logger.error("User " + msgBody.getEmail() + " @findOrCreate method error: " + asyncResult.cause().getMessage());
-                                        WebSocketFrameWriter.writeFrame(INTERNAL_ERROR_MSG, websocket);
+                                        logger.error("User " + msgBody.getEmail() + " @findClient method error: " + asyncResult.cause().getMessage());
+                                        WebSocketFrameWriter.writeFrame(CONFLICT_MSG, websocket);
                                     }
                                 },
                                 msgBody.getNickname(), msgBody.getEmail(), msgBody.getName()
                         );
                         return;
 
-                    case "addNew":
+                    case "createClient":
                         taskExecutor.executeSingle(
                                 INSERT_CLIENT,
                                 asyncResult -> {
                                     if (asyncResult.succeeded()) {
                                         getNicknameFromRowAndWriteFrame(websocket, asyncResult);
                                     } else {
-                                        logger.error("User " + msgBody.getEmail() + " @addNew method error: " + asyncResult.cause().getMessage());
-                                        WebSocketFrameWriter.writeFrame(INTERNAL_ERROR_MSG, websocket);
+                                        logger.error("User " + msgBody.getEmail() + " @createClient method error: " + asyncResult.cause().getMessage());
+                                        WebSocketFrameWriter.writeFrame(CONFLICT_MSG, websocket);
                                     }
                                 },
                                 msgBody.getEmail(), msgBody.getName(), msgBody.getNickname()
                         );
                         return;
 
-                    case "remove":
+                    case "removeClient":
                         taskExecutor.executeSingle(
                                 REMOVE_CLIENT,
                                 asyncResult -> {
                                     if (asyncResult.succeeded()) {
                                         getNicknameFromRowAndWriteFrame(websocket, asyncResult);
                                     } else {
-                                        logger.error("User " + msgBody.getEmail() + " @remove method error: " + asyncResult.cause().getMessage());
-                                        WebSocketFrameWriter.writeFrame(INTERNAL_ERROR_MSG, websocket);
+                                        logger.error("User " + msgBody.getEmail() + " @removeClient method error: " + asyncResult.cause().getMessage());
+                                        WebSocketFrameWriter.writeFrame(CONFLICT_MSG, websocket);
                                     }
                                 },
                                 msgBody.getNickname()
@@ -134,7 +134,7 @@ public class WebSocketFrameProcessor {
                                         }
                                     } else {
                                         logger.error("User " + msgBody.getNickname() + " @updateClient method error: " + asyncResult.cause().getMessage());
-                                        WebSocketFrameWriter.writeFrame(INTERNAL_ERROR_MSG, websocket);
+                                        WebSocketFrameWriter.writeFrame(CONFLICT_MSG, websocket);
                                     }
                                 },
                                 msgBody.getEmail(), msgBody.getNickname()

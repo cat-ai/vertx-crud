@@ -7,13 +7,13 @@ some things were complicated but it's only for benchmark
 ## WHAT IS IT?
 First of all this is primarily for benchmark tests
 
-Well, also if you were looking for some code examples using Vert.x,you can re-create a refactoring by yourself
+Well, also if you were looking for some code examples using Vert.x, you can re-create and refactoring by yourself
 
-##Prerequisites
+## Prerequisites
 
 Used **PostgreSQL** as default database, but you can also use MySQL
 
-[Install]("https://www.postgresql.org/download/"") PostgreSQL and run script resources/pg_scripts.sql,
+[Install](https://www.postgresql.org/download/) PostgreSQL and run script resources/pg_scripts.sql,
 create user and password the same as configured at resources/reference.conf or modify
 
 JVM options
@@ -60,28 +60,28 @@ net.ipv4.tcp_keepalive_time = 1200  
 
 ## Application usage
 
-### Find or create
+### Find client
 * **GET**
 ```
 http://localhost:8081/api/user/some_user?email=some@mail.com&name=Some
 ```
 
-### Insert new
+### Insert new client
 * **PUT**
 ```
 http://localhost:8081/api/user/some_user?email=some@mail.com&name=Some
 ```
 
-### Remove
+### Remove client
 * **DELETE**
 ```
 http://localhost:8081/api/user/some_user
 ```
 
-### Update
+### Update client
 * **POST**
 ```
-http://localhost:8081/api/user/some_user
+http://localhost:8081/api/user
 
 { 
     "msg": 
@@ -108,7 +108,7 @@ You wanna find or create some user (assume you already connected ws://localhost:
 Send frame to ws://localhost:8082/api:
 
 { 
-    "method": "findOrCreate",
+    "method": "findClient",
 
     "msg": 
            {

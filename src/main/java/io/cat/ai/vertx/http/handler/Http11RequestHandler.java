@@ -33,22 +33,22 @@ public class Http11RequestHandler {
     public void handleGet(RoutingContext ctx) {
         val nickname = getNicknameParam(ctx);
         val email = VertxRequestUtil.queryParam(ctx, "email");
-        val name = VertxRequestUtil.queryParam(ctx, "name");
 
         if (isNull(nickname)) {
             Http11Channel.noContent(ctx);
-        } else if (nonNull(email) && nonNull(name)) {
-            service.findOrCreate(ctx, email, name, nickname);
+        } else if (nonNull(email)) {
+            service.findClient(ctx, nickname, email);
         } else {
-            Http11Channel.badRequest(ctx);
+            Http11Channel.badRequestJson(ctx, new ResponseMessage("email parameter is mandatory"));
         }
     }
 
     public void handlePost(RoutingContext ctx) {
-        val json = VertxRequestUtil.parseBody(ctx, Http11RequestMessage.class);
+        val requestMessage = VertxRequestUtil.parseBody(ctx, Http11RequestMessage.class);
 
-        if (nonNull(json)) {
-            service.updateClient(ctx, json.getMsg().getEmail(), json.getMsg().getNickname());
+        if (nonNull(requestMessage)) {
+            val user = requestMessage.getMsg();
+            service.updateClient(ctx, user.getEmail(), user.getNickname());
         } else {
             Http11Channel.badRequestJson(ctx, INVALID_JSON_BODY);
         }
@@ -62,9 +62,9 @@ public class Http11RequestHandler {
         if (isNull(nickname)) {
             Http11Channel.noContent(ctx);
         } else if (nonNull(email) && nonNull(name)) {
-            service.addNew(ctx, email, name, nickname);
+            service.createClient(ctx, email, name, nickname);
         } else {
-            Http11Channel.badRequest(ctx);
+            Http11Channel.badRequestJson(ctx, new ResponseMessage("Missed mandatory parameter"));
         }
     }
 
@@ -72,7 +72,7 @@ public class Http11RequestHandler {
         val nickname = getNicknameParam(ctx);
 
         if (nonNull(nickname)) {
-            service.remove(ctx, nickname);
+            service.removeClient(ctx, nickname);
         } else {
             Http11Channel.noContent(ctx);
         }

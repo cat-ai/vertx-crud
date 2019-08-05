@@ -14,11 +14,13 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.impl.transport.Transport;
 
+import lombok.EqualsAndHashCode;
 import lombok.val;
 
 import java.util.HashSet;
 import java.util.Set;
 
+@EqualsAndHashCode
 public class WebSocketServerNode implements Node {
 
     private static final Logger logger = LoggerFactory.getLogger(WebSocketServerNode.class);

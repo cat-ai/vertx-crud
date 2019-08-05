@@ -16,15 +16,15 @@ public class HttpCrudService {
         this.crud = CrudFactory.newVertxHttpCrud(vertx, conf);
     }
 
-    public void findOrCreate(final RoutingContext ctx, final String... params) {
+    public void findClient(final RoutingContext ctx, final String... params) {
         crud.select(ctx, params);
     }
 
-    public void addNew(final RoutingContext ctx, final String... params) {
+    public void createClient(final RoutingContext ctx, final String... params) {
         crud.insert(ctx, params);
     }
 
-    public void remove(final RoutingContext ctx, final String... params) {
+    public void removeClient(final RoutingContext ctx, final String... params) {
         crud.delete(ctx, params);
     }
 

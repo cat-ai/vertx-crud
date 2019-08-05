@@ -33,7 +33,7 @@ public class VertxPgHttpCrud implements VertxHttpCrud {
     @Override
     public void select(final RoutingContext ctx, final String... params) {
         executor.executeSingle(
-                SELECT_IF_EXISTS_OR_CREATE_IF_NOT,
+                SELECT_CLIENT,
                 asyncResult -> {
                     if (asyncResult.succeeded()) {
                         val it = asyncResult.result().iterator();
@@ -44,11 +44,11 @@ public class VertxPgHttpCrud implements VertxHttpCrud {
 
                             Http11Channel.jsonOk(ctx, new ResponseMessage(client));
                         } else {
-                            Http11Channel.internalServerError(ctx);
+                            Http11Channel.notFound(ctx);
                         }
                     } else {
                         logger.error(asyncResult.cause());
-                        Http11Channel.internalServerError(ctx, asyncResult.cause());
+                        Http11Channel.internalServerError(ctx);
                     }
                 },
                 params
@@ -70,9 +70,8 @@ public class VertxPgHttpCrud implements VertxHttpCrud {
                             Http11Channel.notFound(ctx);
                         }
                     } else {
-                        System.out.println("Error");
                         logger.error(asyncResult.cause());
-                        Http11Channel.internalServerError(ctx, asyncResult.cause());
+                        Http11Channel.conflict(ctx);
                     }
                 },
                 params
@@ -95,7 +94,7 @@ public class VertxPgHttpCrud implements VertxHttpCrud {
                         }
                     } else {
                         logger.error(asyncResult.cause());
-                        Http11Channel.internalServerError(ctx, asyncResult.cause());
+                        Http11Channel.conflict(ctx);
                     }
                 },
                 params
@@ -117,8 +116,8 @@ public class VertxPgHttpCrud implements VertxHttpCrud {
                             Http11Channel.internalServerError(ctx);
                         }
                     } else {
-                        logger.error(asyncResult.result());
-                        Http11Channel.internalServerError(ctx, asyncResult.cause());
+                        logger.error(asyncResult.cause());
+                        Http11Channel.conflict(ctx);
                     }
                 },
                 params
